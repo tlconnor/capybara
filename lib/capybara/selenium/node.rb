@@ -107,7 +107,11 @@ class Capybara::Selenium::Node < Capybara::Driver::Node
   end
 
   def send_keys(*args)
-    native.send_keys(*args)
+    # native.send_keys(*args)
+    slices = args.slice_when {|kb, ka| kb.is_a?(Array) || ka.is_a?(Array)}.map{|keys| keys.flatten}
+    slices.each do |keys|
+      native.send_keys(*keys)
+    end
   end
 
   def hover
