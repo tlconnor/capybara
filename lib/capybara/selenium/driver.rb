@@ -43,6 +43,11 @@ class Capybara::Selenium::Driver < Capybara::Driver::Base
       end
     end
 
+    Selenium::WebDriver::Firefox::W3CBridge.class_eval do
+      define_method 'alert=' do |keys|
+        execute :sendAlertText, {}, {value: Array(keys)}
+      end
+    end
 
     @app = app
     @browser = nil
