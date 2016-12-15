@@ -2,6 +2,8 @@
 require 'timeout'
 require 'nokogiri'
 require 'xpath'
+require 'forwardable'
+require 'capybara/session/config'
 
 module Capybara
   class CapybaraError < StandardError; end
@@ -19,18 +21,28 @@ module Capybara
   class WindowError < CapybaraError; end
   class ReadOnlyElementError < CapybaraError; end
 
+
   class << self
-    attr_reader :app_host, :default_host
-    attr_accessor :asset_host, :run_server, :always_include_port
-    attr_accessor :server_port, :exact, :match, :exact_options, :visible_text_only, :enable_aria_label
-    attr_accessor :default_selector, :default_max_wait_time, :ignore_hidden_elements
-    attr_accessor :save_path, :wait_on_first_by_default, :automatic_label_click, :automatic_reload
-    attr_reader :reuse_server
-    attr_accessor :raise_server_errors, :server_errors
-    attr_writer :default_driver, :current_driver, :javascript_driver, :session_name, :server_host
-    attr_reader :save_and_open_page_path
-    attr_accessor :exact_text
+    extend Forwardable
+
     attr_accessor :app
+    attr_reader :reuse_server, :per_session_configuration
+    attr_writer :default_driver, :current_driver, :javascript_driver, :session_name
+
+    # Delegate Capybara global configurations
+    # @!method default_selector
+    #   See {Capybara#configure}
+    # @!method default_max_wait_time
+    #   See {Capybara#configure}
+    # @!method app_host
+    #   See {Capybara#configure}
+    # @!method always_include_port
+    #   See {Capybara#configure}
+    # @!method wait_on_first_by_default
+    #   See {Capybara#configure}
+    SessionConfig::OPTIONS.each do |method|
+      def_delegators :default_session_options, method, "#{method}="
+    end
 
     ##
     #
@@ -58,6 +70,7 @@ module Capybara
     # [automatic_label_click = Boolean]   Whether Node#choose, Node#check, Node#uncheck will attempt to click the associated label element if the checkbox/radio button are non-visible (Default: false)
     # [enable_aria_label = Boolean]  Whether fields, links, and buttons will match against aria-label attribute (Default: false)
     # [reuse_server = Boolean]  Reuse the server thread between multiple sessions using the same app object (Default: true)
+    # [per_session_configuration = Boolean]  Whether sessions can be configured individually (Default: false)
     # === DSL Options
     #
     # when using capybara/dsl, the following options are also available:
@@ -298,14 +311,6 @@ module Capybara
 
     ##
     #
-    # @return [String]    The IP address bound by default server
-    #
-    def server_host
-      @server_host || '127.0.0.1'
-    end
-
-    ##
-    #
     # Yield a block using a specific wait time
     #
     def using_wait_time(seconds)
@@ -386,22 +391,6 @@ module Capybara
       self.default_max_wait_time = t
     end
 
-    def save_and_open_page_path=(path)
-      warn "DEPRECATED: #save_and_open_page_path is deprecated, please use #save_path instead. \n"\
-           "Note: Behavior is slightly different with relative paths - see documentation" unless path.nil?
-      @save_and_open_page_path = path
-    end
-
-    def app_host=(url)
-      raise ArgumentError.new("Capybara.app_host should be set to a url (http://www.example.com)") unless url.nil? || (url =~ URI::Parser.new.make_regexp)
-      @app_host = url
-    end
-
-    def default_host=(url)
-      raise ArgumentError.new("Capybara.default_host should be set to a url (http://www.example.com)") unless url.nil? || (url =~ URI::Parser.new.make_regexp)
-      @default_host = url
-    end
-
     def included(base)
       base.send(:include, Capybara::DSL)
       warn "`include Capybara` is deprecated. Please use `include Capybara::DSL` instead."
@@ -410,6 +399,11 @@ module Capybara
     def reuse_server=(bool)
       warn "Capybara.reuse_server == false is a BETA feature and may change in a future version" unless bool
       @reuse_server = bool
+    end
+
+    def per_session_configuration=(bool)
+      raise "Per Session Configuration setting cannot be changed once a session is created" if (bool != @per_session_configuration) && Session.instance_created?
+      @per_session_configuration = bool
     end
 
     def deprecate(method, alternate_method, once=false)
@@ -422,6 +416,10 @@ module Capybara
 
     def session_pool
       @session_pool ||= {}
+    end
+
+    def default_session_options
+      @config ||= Capybara::SessionConfig.new
     end
   end
 
