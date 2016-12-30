@@ -1,10 +1,6 @@
 language: ruby
 sudo: required
 dist: trusty
-rvm:
-  - 2.3.3
-  - jruby-9.1.5.0
-  - rbx-3
 gemfile:
   - Gemfile
 env:
@@ -24,22 +20,6 @@ matrix:
       rvm: 2.4.0
       env:
         - WINDOW_TEST=true
-    - gemfile: gemfiles/Gemfile.rspec-34
-      rvm: 2.3.1
-      env: CAPYBARA_CHROME=true
-      addons:
-        apt:
-          sources:
-            - google-chrome
-          packages:
-            - google-chrome-stable
-            - awesome
-    - gemfile: gemfiles/Gemfile.ruby-20
-      rvm: 2.0.0
-    - gemfile: gemfiles/Gemfile.ruby-19
-      rvm: 1.9.3
-    - gemfile: gemfiles/Gemfile.base-versions
-      rvm: 1.9.3
     - gemfile: Gemfile
       rvm: 2.4.0
       env:
