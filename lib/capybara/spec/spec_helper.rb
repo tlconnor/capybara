@@ -24,7 +24,7 @@ module Capybara
         config.after { Capybara::SpecHelper.reset! }
         # Test in 3.5+ where metadata doesn't autotrigger shared context inclusion - will be only behavior in RSpec 4
         config.shared_context_metadata_behavior = :apply_to_host_groups if RSpec::Core::Version::STRING.to_f >= 3.5
-        config.backtrace_clean_patterns = []
+        config.backtrace_exclusion_patterns = []
       end
 
       def reset!
