@@ -13,6 +13,7 @@ addons:
   apt:
     packages:
       - awesome
+rvm: 2.4.0
 
 matrix:
   include:
