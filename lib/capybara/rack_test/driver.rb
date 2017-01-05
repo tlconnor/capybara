@@ -5,8 +5,6 @@ require 'mime/types'
 require 'nokogiri'
 require 'cgi'
 
-::Forwardable::debug = true
-
 class Capybara::RackTest::Driver < Capybara::Driver::Base
   DEFAULT_OPTIONS = {
     respect_data_method: false,
