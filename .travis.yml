@@ -70,6 +70,15 @@ matrix:
         apt:
           packages:
             - awesome
+    - gemfile: Gemfile
+      rvm: 2.3.3
+      os: osx
+      osx_image: xcode8.2
+      env:
+        - WINDOW_TEST=true
+        - CAPYBARA_MARIONETTE=true
+      addons:
+        firefox: latest
   allow_failures:
     - gemfile: Gemfile
       rvm: 2.4.0
@@ -81,6 +90,7 @@ matrix:
     - rvm: rbx-3
     - rvm: jruby-9.1.5.0
     - rvm: jruby-9.1.6.0
+    - os: osx
 
 before_install:
   - mkdir -p ~/drivers; export PATH=~/drivers:$PATH;
@@ -90,9 +100,15 @@ before_install:
       FILE=`mktemp`; wget "$CHROMEDRIVER_URL" -qO $FILE && unzip $FILE chromedriver -d ~/drivers; rm $FILE; chmod 777 ~/drivers/chromedriver;
       ~/drivers/chromedriver --version;
     fi
-  - GECKODRIVER_URL="https://github.com/mozilla/geckodriver/releases/download/v0.12.0/geckodriver-v0.12.0-linux64.tar.gz";
-    FILE=`mktemp`; wget "$GECKODRIVER_URL" -qO $FILE && tar xz -C ~/drivers -f $FILE geckodriver; rm $FILE; chmod 777 ~/drivers/geckodriver;
-    ~/drivers/geckodriver --version;
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
+      brew upgrade geckodriver;
+      geckodriver --version;
+    fi
+  - if [[ "$TRAVIS_OS_NAME" != "osx" ]]; then
+      GECKODRIVER_URL="https://github.com/mozilla/geckodriver/releases/download/v0.12.0/geckodriver-v0.12.0-linux64.tar.gz";
+      FILE=`mktemp`; wget "$GECKODRIVER_URL" -qO $FILE && tar xz -C ~/drivers -f $FILE geckodriver; rm $FILE; chmod 777 ~/drivers/geckodriver;
+      ~/drivers/geckodriver --version;
+    fi
   - if [[ $BUNDLE_GEMFILE =~ Gemfile.edge-marionette$ ]]; then
       pushd ..;
       git clone --depth 1 https://github.com/SeleniumHQ/selenium.git;
