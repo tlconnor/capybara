@@ -79,6 +79,13 @@ matrix:
         - CAPYBARA_MARIONETTE=true
       addons:
         firefox: latest
+    - gemfile: Gemfile
+      rvm: 2.3.3
+      os: osx
+      osx_image: xcode8.2
+      env:
+        - WINDOW_TEST=true
+        - CAPYBARA_SAFARI=true
   allow_failures:
     - gemfile: Gemfile
       rvm: 2.4.0
