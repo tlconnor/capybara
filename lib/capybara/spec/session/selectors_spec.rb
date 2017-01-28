@@ -60,6 +60,7 @@ Capybara::SpecHelper.spec Capybara::Selector do
       expect(@session.find(:field, class: 'confusion-checkbox')['id']).to eq 'confusion_checkbox'
       expect(@session).to have_selector(:field, class: 'confusion', count: 3)
       expect(@session.find(:field, class: ['confusion','confusion-textarea'])['id']).to eq 'confusion_textarea'
+      expect(@session.find(:field, class: 'confusion-textarea confusion')['id']).to eq 'confusion_textarea'
     end
   end
 end

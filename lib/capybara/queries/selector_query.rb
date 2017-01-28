@@ -177,7 +177,9 @@ module Capybara
           expr = "(#{expr})"
           expr = "#{expr}[#{XPath.attr(:id) == options[:id]}]" if options.has_key?(:id) && !custom_keys.include?(:id)
           if options.has_key?(:class) && !custom_keys.include?(:class)
-            class_xpath = Array(options[:class]).map do |klass|
+            classes = options[:class]
+            classes = classes.split(/\s+/) if classes.is_a? String
+            class_xpath = classes.map do |klass|
               "contains(concat(' ',normalize-space(@class),' '),' #{klass} ')"
             end.join(" and ")
             expr = "#{expr}[#{class_xpath}]"
