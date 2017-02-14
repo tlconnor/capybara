@@ -147,5 +147,12 @@ RSpec.shared_examples "Capybara::Session" do |session, mode|
         })
       end
     end
+
+    describe "visit", :focus_ do
+      it "can visit a file" do
+        @session.visit("file:#{File.expand_path('fixtures/test.html', File.dirname(__FILE__))}")
+        expect(@session).to have_text('From test file')
+      end
+    end
   end
 end
