@@ -39,7 +39,7 @@ module Capybara
         Capybara.match = :smart
         Capybara.wait_on_first_by_default = false
         Capybara.enable_aria_label = false
-        reset_per_session_configuration
+        reset_threadsafe
       end
 
       def filter(requires, metadata)
@@ -71,11 +71,11 @@ module Capybara
           end
 
           before :each, psc: true do
-            SpecHelper.reset_per_session_configuration(true, @session)
+            SpecHelper.reset_threadsafe(true, @session)
           end
 
           after psc: true do
-            SpecHelper.reset_per_session_configuration(false, @session)
+            SpecHelper.reset_threadsafe(false, @session)
           end
 
           specs.each do |spec_name, spec_options, block|
@@ -86,9 +86,9 @@ module Capybara
         end
       end
 
-      def reset_per_session_configuration(bool = false, session = nil)
-        Capybara::Session.class_variable_set(:@@instance_created, false) # Work around limit on when per_session_configuration can be changed
-        Capybara.per_session_configuration = bool
+      def reset_threadsafe(bool = false, session = nil)
+        Capybara::Session.class_variable_set(:@@instance_created, false) # Work around limit on when threadsafe can be changed
+        Capybara.threadsafe = bool
         session = session.current_session if session.respond_to?(:current_session)
         session.instance_variable_set(:@config, nil) if session
       end

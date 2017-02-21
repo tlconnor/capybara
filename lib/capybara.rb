@@ -26,8 +26,8 @@ module Capybara
     extend Forwardable
 
     attr_accessor :app
-    attr_reader :reuse_server, :per_session_configuration
-    attr_writer :default_driver, :current_driver, :javascript_driver, :session_name
+    attr_reader :reuse_server, :threadsafe
+    attr_writer :default_driver, :javascript_driver
 
     # Delegate Capybara global configurations
     # @!method default_selector
@@ -70,7 +70,7 @@ module Capybara
     # [automatic_label_click = Boolean]   Whether Node#choose, Node#check, Node#uncheck will attempt to click the associated label element if the checkbox/radio button are non-visible (Default: false)
     # [enable_aria_label = Boolean]  Whether fields, links, and buttons will match against aria-label attribute (Default: false)
     # [reuse_server = Boolean]  Reuse the server thread between multiple sessions using the same app object (Default: true)
-    # [per_session_configuration = Boolean]  Whether sessions can be configured individually (Default: false)
+    # [threadsafe = Boolean]  Whether sessions can be configured individually (Default: false)
     # === DSL Options
     #
     # when using capybara/dsl, the following options are also available:
@@ -277,10 +277,21 @@ module Capybara
     # @return [Symbol]    The name of the driver currently in use
     #
     def current_driver
-      @current_driver || default_driver
+      if threadsafe
+        Thread.current['capybara_current_driver']
+      else
+        @current_driver
+      end || default_driver
     end
     alias_method :mode, :current_driver
 
+    def current_driver=(name)
+      if threadsafe
+        Thread.current['capybara_current_driver'] = name
+      else
+        @current_driver = name
+      end
+    end
     ##
     #
     # @return [Symbol]    The name of the driver used when JavaScript is needed
@@ -294,7 +305,7 @@ module Capybara
     # Use the default driver as the current driver
     #
     def use_default_driver
-      @current_driver = nil
+      self.current_driver = nil
     end
 
     ##
@@ -306,7 +317,7 @@ module Capybara
       Capybara.current_driver = driver
       yield
     ensure
-      @current_driver = previous_driver
+      self.current_driver = previous_driver
     end
 
     ##
@@ -349,7 +360,19 @@ module Capybara
     # @return [Symbol]    The name of the currently used session.
     #
     def session_name
-      @session_name ||= :default
+      if threadsafe
+        Thread.current['capybara_session_name'] ||= :default
+      else
+        @session_name ||= :default
+      end
+    end
+
+    def session_name=(name)
+      if threadsafe
+        Thread.current['capybara_session_name'] = name
+      else
+        @session_name = name
+      end
     end
 
     ##
@@ -357,11 +380,19 @@ module Capybara
     # Yield a block using a specific session name.
     #
     def using_session(name)
-      previous_session_name = self.session_name
+      previous_session_info = {
+        session_name: session_name,
+        current_driver: current_driver,
+        app: app
+      }
       self.session_name = name
       yield
     ensure
-      self.session_name = previous_session_name
+      self.session_name = previous_session_info[:session_name]
+      if threadsafe
+        self.current_driver = previous_session_info[:current_driver]
+        self.app = previous_session_info[:app]
+      end
     end
 
     ##
@@ -397,13 +428,13 @@ module Capybara
     end
 
     def reuse_server=(bool)
-      warn "Capybara.reuse_server == false is a BETA feature and may change in a future version" unless bool
       @reuse_server = bool
     end
 
-    def per_session_configuration=(bool)
-      raise "Per Session Configuration setting cannot be changed once a session is created" if (bool != @per_session_configuration) && Session.instance_created?
-      @per_session_configuration = bool
+    def threadsafe=(bool)
+      warn "Capybara.threadsafe == true is a BETA feature and may change in a future versions" if bool
+      raise "Threadsafe setting cannot be changed once a session is created" if (bool != threadsafe) && Session.instance_created?
+      @threadsafe = bool
     end
 
     def deprecate(method, alternate_method, once=false)

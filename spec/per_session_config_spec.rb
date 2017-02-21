@@ -3,9 +3,9 @@ require 'spec_helper'
 require 'capybara/dsl'
 
 RSpec.describe Capybara::SessionConfig do
-  describe "per session config" do
+  describe "threadsafe" do
     it "defaults to global session options" do
-      Capybara.per_session_configuration = true
+      Capybara.threadsafe = true
       session = Capybara::Session.new(:rack_test, TestApp)
       [:default_host, :app_host, :save_and_open_page_path,
        :always_include_port, :run_server, :default_selector, :default_max_wait_time, :ignore_hidden_elements,
@@ -17,7 +17,7 @@ RSpec.describe Capybara::SessionConfig do
     end
 
     it "doesn't change global session when changed" do
-      Capybara.per_session_configuration = true
+      Capybara.threadsafe = true
       host = "http://my.example.com"
       session = Capybara::Session.new(:rack_test, TestApp) do |config|
         config.default_host = host
@@ -31,25 +31,25 @@ RSpec.describe Capybara::SessionConfig do
     end
 
     it "doesn't allow session configuration block when false" do
-      Capybara.per_session_configuration = false
+      Capybara.threadsafe = false
       expect do
         Capybara::Session.new(:rack_test, TestApp) { |config| }
-      end.to raise_error "A configuration block is only accepted when Capybara.per_session_configuration == true"
+      end.to raise_error "A configuration block is only accepted when Capybara.threadsafe == true"
     end
 
     it "doesn't allow session config when false" do
-      Capybara.per_session_configuration = false
+      Capybara.threadsafe = false
       session = Capybara::Session.new(:rack_test, TestApp)
-      expect { session.config.default_selector = :title }.to raise_error /Per session settings are only supported when Capybara.per_session_configuration == true/
+      expect { session.config.default_selector = :title }.to raise_error /Per session settings are only supported when Capybara.threadsafe == true/
       expect do
         session.configure do |config|
           config.exact = true
         end
-      end.to raise_error /Session configuration is only supported when Capybara.per_session_configuration == true/
+      end.to raise_error /Session configuration is only supported when Capybara.threadsafe == true/
     end
 
     it "uses the config from the session" do
-      Capybara.per_session_configuration = true
+      Capybara.threadsafe = true
       session = Capybara::Session.new(:rack_test, TestApp) do |config|
         config.default_selector = :link
       end
@@ -57,11 +57,11 @@ RSpec.describe Capybara::SessionConfig do
       expect(session.find('foo').tag_name).to eq 'a'
     end
 
-    it "won't change per session config once a session is created" do
-      Capybara.per_session_configuration = true
-      Capybara.per_session_configuration = false
+    it "won't change threadsafe once a session is created" do
+      Capybara.threadsafe = true
+      Capybara.threadsafe = false
       session = Capybara::Session.new(:rack_test, TestApp)
-      expect { Capybara.per_session_configuration = true }.to raise_error /Per Session Configuration setting cannot be changed once a session is created/
+      expect { Capybara.threadsafe = true }.to raise_error /Threadsafe setting cannot be changed once a session is created/
     end
   end
 end

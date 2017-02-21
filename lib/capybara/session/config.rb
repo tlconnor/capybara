@@ -93,7 +93,7 @@ module Capybara
   class ReadOnlySessionConfig < SimpleDelegator
     SessionConfig::OPTIONS.each do |m|
       define_method "#{m}=" do |val|
-        raise "Per session settings are only supported when Capybara.per_session_configuration == true"
+        raise "Per session settings are only supported when Capybara.threadsafe == true"
       end
     end
   end
