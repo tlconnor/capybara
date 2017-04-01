@@ -109,6 +109,7 @@ module Capybara
     #
     def reset!
       if @touched
+        clear_storage if @server && Capybara.clear_storage_on_reset
         driver.reset!
         @touched = false
       end
@@ -231,27 +232,7 @@ module Capybara
     def visit(visit_uri)
       raise_server_error!
       @touched = true
-
-      visit_uri = URI.parse(visit_uri.to_s)
-
-      uri_base = if @server
-        visit_uri.port = @server.port if Capybara.always_include_port && (visit_uri.port == visit_uri.default_port)
-        URI.parse(Capybara.app_host || "http://#{@server.host}:#{@server.port}")
-      else
-        Capybara.app_host && URI.parse(Capybara.app_host)
-      end
-
-      # TODO - this is only for compatability with previous 2.x behavior that concatenated
-      # Capybara.app_host and a "relative" path - Consider removing in 3.0
-      # @abotalov brought up a good point about this behavior potentially being useful to people
-      # deploying to a subdirectory and/or single page apps where only the url fragment changes
-      if visit_uri.scheme.nil? && uri_base
-        visit_uri.path = uri_base.path + visit_uri.path
-      end
-
-      visit_uri = uri_base.merge(visit_uri) unless uri_base.nil?
-
-      driver.visit(visit_uri.to_s)
+      driver.visit(computed_uri(visit_uri).to_s)
     end
 
     ##
@@ -842,6 +823,40 @@ module Capybara
         Capybara::Node::Element.new(self, arg, nil, nil)
       else
         arg
+      end
+    end
+
+    def computed_uri(visit_uri)
+      visit_uri = URI.parse(visit_uri.to_s)
+
+      uri_base = if @server
+        visit_uri.port = @server.port if Capybara.always_include_port && (visit_uri.port == visit_uri.default_port)
+        URI.parse(Capybara.app_host || "http://#{@server.host}:#{@server.port}")
+      else
+        Capybara.app_host && URI.parse(Capybara.app_host)
+      end
+
+      # TODO - this is only for compatability with previous 2.x behavior that concatenated
+      # Capybara.app_host and a "relative" path - Consider removing in 3.0
+      # @abotalov brought up a good point about this behavior potentially being useful to people
+      # deploying to a subdirectory and/or single page apps where only the url fragment changes
+      if visit_uri.scheme.nil? && uri_base
+        visit_uri.path = uri_base.path + visit_uri.path
+      end
+
+      visit_uri = uri_base.merge(visit_uri) unless uri_base.nil?
+      visit_uri
+    end
+
+    def clear_storage
+      if
+        begin
+          driver.clear_storage do
+            driver.visit(computed_uri("/__clear_storage__"))
+          end
+        rescue => e
+          warn "Session storage may not have been cleared due to #{e.message}"
+        end
       end
     end
 

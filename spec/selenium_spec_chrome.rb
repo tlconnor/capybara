@@ -30,6 +30,12 @@ RSpec.describe "Capybara::Session with chrome" do
 
   context "storage" do
     describe "#reset!" do
+      before do
+        # TODO: remove these tests
+        # only test the driver resetting
+        Capybara.clear_storage_on_reset = false
+      end
+
       it "does not clear either storage by default" do
         @session = TestSessions::Chrome
         @session.visit('/with_js')

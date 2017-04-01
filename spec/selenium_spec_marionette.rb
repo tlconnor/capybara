@@ -8,7 +8,7 @@ Capybara.register_driver :selenium_marionette do |app|
   Capybara::Selenium::Driver.new(
     app,
     browser: :firefox,
-    desired_capabilities: Selenium::WebDriver::Remote::Capabilities.firefox(marionette: true)
+    desired_capabilities: Selenium::WebDriver::Remote::Capabilities.firefox(marionette: true),
   )
 end
 
@@ -89,6 +89,12 @@ RSpec.describe Capybara::Selenium::Driver do
 
   context "storage" do
     describe "#reset!" do
+      before do
+        # TODO: remove these tests
+        # only test the driver resetting
+        Capybara.clear_storage_on_reset = false
+      end
+
       it "does not clear either storage by default" do
         @session = TestSessions::SeleniumMarionette
         @session.visit('/with_js')
