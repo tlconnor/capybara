@@ -58,7 +58,7 @@ module Capybara
     # [automatic_label_click = Boolean]   Whether Node#choose, Node#check, Node#uncheck will attempt to click the associated label element if the checkbox/radio button are non-visible (Default: false)
     # [enable_aria_label = Boolean]  Whether fields, links, and buttons will match against aria-label attribute (Default: false)
     # [reuse_server = Boolean]  Reuse the server thread between multiple sessions using the same app object (Default: true)
-    # [clear_storage_on_reset = Boolean]  Clear localStorage and sessionStorage when session is reset (Default: false)
+    # [clear_storage_on_reset = [Boolean, :local, :storage]]  Clear localStorage and sessionStorage when session is reset (Default: false)
     # === DSL Options
     #
     # when using capybara/dsl, the following options are also available:
