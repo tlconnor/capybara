@@ -89,9 +89,11 @@ module Capybara
     end
 
     def wait_for_pending_requests
-      Timeout.timeout(60) { sleep(0.01) while pending_requests? }
-    rescue Timeout::Error
-      raise "Requests did not finish in 60 seconds"
+      start_time = Capybara::Helpers.monotonic_time
+      while pending_requests?
+        raise "Requests did not finish in 60 seconds" if (Capybara::Helpers.monotonic_time - start_time) >= 60
+        sleep 0.01
+      end
     end
 
     def boot
@@ -102,11 +104,12 @@ module Capybara
           Capybara.server.call(middleware, port, host)
         end
 
-        Timeout.timeout(60) { @server_thread.join(0.1) until responsive? }
+        start_time = Capybara::Helpers.monotonic_time
+        begin
+          raise "Rack application timed out during boot" if (Capybara::Helpers.monotonic_time - start_time) >= 60
+          @server_thread.join(0.1)
+        end until responsive?
       end
-    rescue Timeout::Error
-      raise "Rack application timed out during boot"
-    else
       self
     end
 
