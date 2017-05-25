@@ -307,6 +307,7 @@ class Capybara::Selenium::Driver < Capybara::Driver::Base
 
   # @api private
   def headless_chrome?
+    return false
     chrome? && ((@processed_options[:desired_capabilities][:chrome_options] || {})['args'] || []).include?("headless")
   end
 
