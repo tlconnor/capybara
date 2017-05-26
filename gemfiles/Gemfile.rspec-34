@@ -6,3 +6,4 @@ gemspec :path => '..'
 gem 'xpath', github: 'teamcapybara/xpath'
 gem 'rspec', '~>3.4.0'
 
+gem 'puma'
