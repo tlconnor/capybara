@@ -643,6 +643,17 @@ module Capybara
       element_script_result(result)
     end
 
+    def evaluate_async_script(script, *args)
+      @touched = true
+      result = if args.empty?
+        driver.evaluate_async_script(script)
+      else
+        raise Capybara::NotSupportedByDriverError, "The current driver does not support evaluate_script arguments" if driver.method(:evaluate_script).arity == 1
+        driver.evaluate_async_script(script, *args.map { |arg| arg.is_a?(Capybara::Node::Element) ?  arg.base : arg} )
+      end
+      element_script_result(result)
+    end
+
     ##
     #
     # Execute the block, accepting a alert.

@@ -107,6 +107,11 @@ class Capybara::Selenium::Driver < Capybara::Driver::Base
     unwrap_script_result(result)
   end
 
+  def evaluate_async_script(script, *args)
+    result = browser.execute_async_script(script, *args.map { |arg| arg.is_a?(Capybara::Selenium::Node) ?  arg.native : arg} )
+    unwrap_script_result(result)
+  end
+
   def save_screenshot(path, _options={})
     browser.save_screenshot(path)
   end
