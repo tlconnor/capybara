@@ -16,6 +16,7 @@ class Capybara::Selenium::Driver < Capybara::Driver::Base
     unless @browser
       if firefox?
         options[:desired_capabilities] ||= {}
+        options[:desired_capabilities] = ::Selenium::WebDriver::Remote::Capabilities.firefox(options[:desired_capabilities]) if options[:desired_capabilities].is_a?(Hash)
         options[:desired_capabilities].merge!({ unexpectedAlertBehaviour: "ignore" })
       end
 
