@@ -9,4 +9,4 @@ group :doc do
   gem 'redcarpet', :platforms => :mri
 end
 
-gem 'selenium-webdriver', :path => '../../selenium/build/rb'
+gem 'selenium-webdriver', :path => '../selenium/build/rb'
