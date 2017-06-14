@@ -8,3 +8,5 @@ gem 'xpath', :git => 'git://github.com/teamcapybara/xpath.git'
 group :doc do
   gem 'redcarpet', :platforms => :mri
 end
+
+gem 'selenium-webdriver', :path => '../../selenium/build/rb'
