@@ -308,7 +308,13 @@ class Capybara::Selenium::Driver < Capybara::Driver::Base
 
   # @api private
   def headless_chrome?
-    chrome? && ((@processed_options[:desired_capabilities][:chrome_options] || {})['args'] || []).include?("headless")
+    if chrome?
+      caps = @processed_options[:desired_capabilities]
+      chrome_options = caps[:chrome_options] || caps[:chromeOptions] || {}
+      args = chrome_options['args'] || chrome_options[:args]
+      return (args || []).include?("headless")
+    end
+    return false
   end
 
   # @deprecated This method is being removed
