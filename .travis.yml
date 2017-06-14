@@ -112,7 +112,7 @@ before_install:
   - GECKODRIVER_URL="https://github.com/mozilla/geckodriver/releases/download/v0.17.0/geckodriver-v0.17.0-linux64.tar.gz";
     FILE=`mktemp`; wget "$GECKODRIVER_URL" -qO $FILE && tar xz -C ~/drivers -f $FILE geckodriver; rm $FILE; chmod 777 ~/drivers/geckodriver;
     ~/drivers/geckodriver --version;
-  - if [[ $BUNDLE_GEMFILE =~ Gemfile.edge-marionette$ ] || [ $BUNDLE_GEMFILE =~ Gemfile.beta-versions$ ] || [ $BUNDLE_GEMFILE =~ Gemfile$ ] || [ $BUNDLE_GEMFILE =~ Gemfile.rspec-34$ ] || [ $BUNDLE_GEMFILE =~ Gemfile.ruby-20$ ]]; then
+  - if [[ $BUNDLE_GEMFILE =~ Gemfile.edge-marionette$ ]] || [[ $BUNDLE_GEMFILE =~ Gemfile.beta-versions$ ]] || [[ $BUNDLE_GEMFILE =~ Gemfile$ ]] || [[ $BUNDLE_GEMFILE =~ Gemfile.rspec-34$ ]] || [[ $BUNDLE_GEMFILE =~ Gemfile.ruby-20$ ]]; then
       pushd ..;
       git clone --depth 1 https://github.com/SeleniumHQ/selenium.git;
       cd selenium; ./go //rb:gem:build;
