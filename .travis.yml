@@ -76,6 +76,9 @@ matrix:
       env: CAPYBARA_FF=true HEADLESS=true
       addons:
         firefox: latest-nightly
+    - gemfile: gemfiles/Gemfile.gumbo
+      rvm: 2.4.1
+      script: bundle exec rake spec_rack
   allow_failures:
     - gemfile: gemfiles/Gemfile.beta-versions
     - gemfile: gemfiles/Gemfile.edge-marionette
