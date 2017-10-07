@@ -55,7 +55,7 @@ end
 
 RSpec.describe Capybara::Selenium::Driver do
   before do
-    @driver = Capybara::Selenium::Driver.new(TestApp, browser: :firefox)
+    @driver = Capybara::Selenium::Driver.new(TestApp, browser: :firefox, options: browser_options)
   end
 
   describe '#quit' do
