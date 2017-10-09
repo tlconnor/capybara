@@ -77,14 +77,7 @@ class Capybara::Selenium::Node < Capybara::Driver::Node
         JS
         driver.execute_script script, self
 
-        if (driver.chrome?) || (driver.firefox? && !driver.marionette?)
-          # chromedriver raises a can't focus element for child elements if we use native.send_keys
-          # we've already focused it so just use action api
-          driver.browser.action.send_keys(value.to_s).perform
-        else
-          # action api is really slow here just use native.send_keys
-          native.send_keys(value.to_s)
-        end
+        set_content_editable(value.to_s)
       end
     end
   end
@@ -236,6 +229,17 @@ private
         driver.execute_script "arguments[0].value = ''", self
         native.send_keys(value.to_s)
       end
+    end
+  end
+
+  def set_content_editable(value)
+    if (driver.chrome?) || (driver.firefox? && !driver.marionette?)
+      # chromedriver raises a can't focus element for child elements if we use native.send_keys
+      # we've already focused it so just use action api
+      driver.browser.action.send_keys(value).perform
+    else
+      # action api is really slow here just use native.send_keys
+      native.send_keys(value)
     end
   end
 end
