@@ -1,24 +1,24 @@
 module Capybara::Selenium::Workarounds
   module Chrome
-    def accept_modal_with_headless_chrome(_type, options={})
+    def accept_modal_with_headless_chrome(_type, options={}, &block)
       if headless?
         raise ArgumentError, "Block that triggers the system modal is missing" unless block_given?
         insert_modal_handlers(true, options[:with], options[:text])
         yield
         find_headless_modal(options)
       else
-        accept_modal_without_headless_chrome(_type, options)
+        accept_modal_without_headless_chrome(_type, options, &block)
       end
     end
 
-    def dismiss_modal_with_headless_chrome(_type, options={})
+    def dismiss_modal_with_headless_chrome(_type, options={}, &block)
       if headless?
         raise ArgumentError, "Block that triggers the system modal is missing" unless block_given?
         insert_modal_handlers(false, options[:with], options[:text])
         yield
         find_headless_modal(options)
       else
-        dismiss_modal_without_headless_chrome(_type, options)
+        dismiss_modal_without_headless_chrome(_type, options, &block)
       end
     end
 
