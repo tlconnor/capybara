@@ -127,20 +127,7 @@ class Capybara::Selenium::Driver < Capybara::Driver::Base
           # can trigger an endless series of unload modals
           begin
             @browser.manage.delete_all_cookies
-            if options[:clear_session_storage]
-              if @browser.respond_to? :session_storage
-                @browser.session_storage.clear
-              else
-                warn "sessionStorage clear requested but is not available for this driver"
-              end
-            end
-            if options[:clear_local_storage]
-              if @browser.respond_to? :local_storage
-                @browser.local_storage.clear
-              else
-                warn "localStorage clear requested but is not available for this driver"
-              end
-            end
+            clear_storage
           rescue Selenium::WebDriver::Error::UnhandledError
             # delete_all_cookies fails when we've previously gone
             # to about:blank, so we rescue this error and do nothing
@@ -332,6 +319,23 @@ class Capybara::Selenium::Driver < Capybara::Driver::Base
     options[:browser].to_s
   end
 
+  def clear_storage
+    if options[:clear_session_storage]
+      if @browser.respond_to? :session_storage
+        @browser.session_storage.clear
+      else
+        warn "sessionStorage clear requested but is not available for this driver"
+      end
+    end
+    if options[:clear_local_storage]
+      if @browser.respond_to? :local_storage
+        @browser.local_storage.clear
+      else
+        warn "localStorage clear requested but is not available for this driver"
+      end
+    end
+  end
+
   def modal_error
     if defined?(Selenium::WebDriver::Error::NoSuchAlertError)
       Selenium::WebDriver::Error::NoSuchAlertError
@@ -340,6 +344,7 @@ class Capybara::Selenium::Driver < Capybara::Driver::Base
     end
   end
 
+  # rubocop:disable Metrics/MethodLength
   def insert_modal_handlers(accept, response_text)
     script = <<-JS
       if (typeof window.capybara  === 'undefined') {
@@ -383,6 +388,7 @@ class Capybara::Selenium::Driver < Capybara::Driver::Base
     JS
     execute_script script
   end
+  # rubocop:enable Metrics/MethodLength
 
   def within_given_window(handle)
     original_handle = self.current_window_handle
