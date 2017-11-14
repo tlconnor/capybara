@@ -254,13 +254,21 @@ module Capybara
       # @return [Capybara::Result]                   A collection of found elements
       #
       def all(*args, **options, &optional_filter_block)
+        minimum_specified = [:count, :minimum, :between].any? {|k| options.key?(k)}
+        options = {minimum: 1}.merge(options) unless minimum_specified
         options[:session_options] = session_options
         args.push(options)
         query = Capybara::Queries::SelectorQuery.new(*args, &optional_filter_block)
-        synchronize(query.wait) do
-          result = query.resolve_for(self)
-          raise Capybara::ExpectationNotMet, result.failure_message unless result.matches_count?
-          result
+        begin
+          result = nil
+          synchronize(query.wait) do
+            result = query.resolve_for(self)
+            raise Capybara::ExpectationNotMet, result.failure_message unless result.matches_count?
+            result
+          end
+        rescue Capybara::ExpectationNotMet
+          raise if minimum_specified || (result.compare_count == 1)
+          Result.new([], nil)
         end
       end
       alias_method :find_all, :all
@@ -269,12 +277,14 @@ module Capybara
       #
       # Find the first element on the page matching the given selector
       # and options.  Will raise an error if no matching element is found
+      # unless the `allow_nil` option is true.
       #
       # @overload first([kind], locator, options)
       #   @param [:css, :xpath] kind                 The type of selector
       #   @param [String] locator                    The selector
       #   @param [Hash] options                      Additional options; see {#all}
       # @return [Capybara::Node::Element]            The found element or nil
+      # @raise  [Capybara::ElementNotFound]          If the element can't be found before time expires and `allow_nil` is not true
       #
       def first(*args, allow_nil: false, **options, &optional_filter_block)
         options = {minimum: 1}.merge(options)
