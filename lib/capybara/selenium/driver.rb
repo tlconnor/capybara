@@ -248,7 +248,7 @@ class Capybara::Selenium::Driver < Capybara::Driver::Base
   end
 
   def quit
-    @browser.quit if @browser
+    @browser&.quit
   rescue Errno::ECONNREFUSED
     # Browser must have already gone
   rescue Selenium::WebDriver::Error::UnknownError => e
