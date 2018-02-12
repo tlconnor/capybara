@@ -215,36 +215,22 @@ class Capybara::Selenium::Driver < Capybara::Driver::Base
   end
 
   def accept_modal(_type, **options)
-    if headless_chrome?
-      raise ArgumentError, "Block that triggers the system modal is missing" unless block_given?
-      insert_modal_handlers(true, options[:with])
-      yield
-      find_headless_modal(options)
-    else
-      yield if block_given?
-      modal = find_modal(options)
+    yield if block_given?
+    modal = find_modal(options)
 
-      modal.send_keys options[:with] if options[:with]
+    modal.send_keys options[:with] if options[:with]
 
-      message = modal.text
-      modal.accept
-      message
-    end
+    message = modal.text
+    modal.accept
+    message
   end
 
   def dismiss_modal(_type, **options)
-    if headless_chrome?
-      raise ArgumentError, "Block that triggers the system modal is missing" unless block_given?
-      insert_modal_handlers(false, options[:with])
-      yield
-      find_headless_modal(options)
-    else
-      yield if block_given?
-      modal = find_modal(options)
-      message = modal.text
-      modal.dismiss
-      message
-    end
+    yield if block_given?
+    modal = find_modal(options)
+    message = modal.text
+    modal.dismiss
+    message
   end
 
   def quit
@@ -290,17 +276,6 @@ class Capybara::Selenium::Driver < Capybara::Driver::Base
   # @api private
   def chrome?
     browser_name == "chrome"
-  end
-
-  # @api private
-  def headless_chrome?
-    if chrome?
-      caps = @processed_options[:desired_capabilities]
-      chrome_options = caps[:chrome_options] || caps[:chromeOptions] || {}
-      args = chrome_options['args'] || chrome_options[:args] || []
-      return args.include?("--headless") || args.include?("headless")
-    end
-    return false
   end
 
 private
@@ -416,37 +391,6 @@ private
       end
     rescue Selenium::WebDriver::Error::TimeOutError
       raise Capybara::ModalNotFound, "Unable to find modal dialog#{" with #{text}" if text}"
-    end
-  end
-
-  def find_headless_modal(text: nil, **options)
-    # Selenium has its own built in wait (2 seconds)for a modal to show up, so this wait is really the minimum time
-    # Actual wait time may be longer than specified
-    wait = Selenium::WebDriver::Wait.new(
-      timeout: options.fetch(:wait, session_options.default_max_wait_time) || 0,
-      ignore: modal_error
-    )
-    begin
-      wait.until do
-        called, alert_text = evaluate_script('window.capybara && window.capybara.current_modal_status()')
-        if called
-          execute_script('window.capybara && window.capybara.modal_handlers.shift()')
-          regexp = text.is_a?(Regexp) ? text : Regexp.escape(text.to_s)
-          if alert_text.match(regexp)
-            alert_text
-          else
-            raise Capybara::ModalNotFound, "Unable to find modal dialog#{" with #{text}" if text}"
-          end
-        elsif called.nil?
-          # page changed so modal_handler data has gone away
-          warn "Can't verify modal text when page change occurs - ignoring" if options[:text]
-          ""
-        else
-          nil
-        end
-      end
-    rescue Selenium::WebDriver::Error::TimeOutError
-      raise Capybara::ModalNotFound, "Unable to find modal dialog#{" with #{options[:text]}" if options[:text]}"
     end
   end
 
